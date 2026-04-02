@@ -1,0 +1,74 @@
+╔══════════════════════════════════════════════════════════╗
+║         TANGLISHBRIDGE EVALUATION RESULTS               ║
+╠══════════════════════════════════════════════════════════╣
+║ Metric              │ Baseline │ TanglishBridge │ Δ      ║
+╠══════════════════════════════════════════════════════════╣
+║ Script Acc (%)      │   73.33 │         73.33 │  +0.00 ║
+║ Coherence Score     │   0.078 │         0.289 │ +0.211 ║
+║ CMI Preservation    │   0.188 │         0.216 │ +0.028 ║
+║ Avg Response Len    │    6.53 │          8.07 │  +1.54 ║
+║ Good Length %       │    0.00 │         13.33 │ +13.33 ║
+╚══════════════════════════════════════════════════════════╝
+
+QUALITATIVE COMPARISON
+--------------------------------------------------------------------------------
+Input [TB001]: bro saptiya?
+Baseline: Ungal input received. Konjam more detail kudunga.
+TanglishBridge: Sapdala na ippove poi sapdu. Nee saptiya?
+--------------------------------------------------------------------------------
+Input [TB002]: naan meeting ku varen
+Baseline: Ungal input received. Konjam more detail kudunga.
+TanglishBridge: Input purinjiduchu. Konjam detail-ah sollunga, better-aa help pannuren.
+--------------------------------------------------------------------------------
+Input [TB003]: enna da pannure?
+Baseline: Ungal input received. Konjam more detail kudunga.
+TanglishBridge: Input purinjiduchu. Konjam detail-ah sollunga, better-aa help pannuren.
+--------------------------------------------------------------------------------
+Input [TB004]: tired ah iruku da
+Baseline: Ungal input received. Konjam more detail kudunga.
+TanglishBridge: Input purinjiduchu. Konjam detail-ah sollunga, better-aa help pannuren.
+--------------------------------------------------------------------------------
+Input [TB005]: office eppo open aagum?
+Baseline: Ungal input received. Konjam more detail kudunga.
+TanglishBridge: Input purinjiduchu. Konjam detail-ah sollunga, better-aa help pannuren.
+--------------------------------------------------------------------------------
+Input [TB006]: vanakkam, nee eppadi irukka?
+Baseline: Ungal input received. Konjam more detail kudunga.
+TanglishBridge: naan nalla irukken. neenga eppadi irukkeenga?
+--------------------------------------------------------------------------------
+Input [TB007]: nandri sollu da
+Baseline: Ungal input received. Konjam more detail kudunga.
+TanglishBridge: unga input purinjiduchu. konjam innum detail - ah sonna nalla help panna mudiyum.
+--------------------------------------------------------------------------------
+Input [TB008]: saapta? illa poi saptu vaa
+Baseline: Ungal input received. Konjam more detail kudunga.
+TanglishBridge: Sapdala na ippove poi sapdu. Nee saptiya?
+--------------------------------------------------------------------------------
+Input [TB009]: தமிழ் என்றால் என்ன?
+Baseline: தமிழ் ஒரு மொழி.
+TanglishBridge: தமிழ் ஒரு செழுமையான திராவிட மொழி. அது இலக்கியமும் கலாச்சாரமும் நிறைந்தது.
+--------------------------------------------------------------------------------
+Input [TB010]: உன் பெயர் என்ன?
+Baseline: Ungal input received. Konjam more detail kudunga.
+TanglishBridge: என் பெயர் TanglishBridge. நான் உதவ தயாராக இருக்கிறேன்.
+--------------------------------------------------------------------------------
+Input [TB011]: what is your name?
+Baseline: My name is Tamil-LLaMA.
+TanglishBridge: My name is TanglishBridge, and I am here to help.
+--------------------------------------------------------------------------------
+Input [TB012]: how are you today?
+Baseline: Ungal input received. Konjam more detail kudunga.
+TanglishBridge: Naan nalla irukken. Neenga eppadi irukkeenga?
+--------------------------------------------------------------------------------
+Input [TB013]: rain aaguthu da, office ku poganum but traffic romba iruku
+Baseline: Ungal input received. Konjam more detail kudunga.
+TanglishBridge: Input purinjiduchu. Konjam detail-ah sollunga, better-aa help pannuren.
+--------------------------------------------------------------------------------
+Input [TB014]: exam result varutha? pass aanen ah fail aanen ah theriyala
+Baseline: Ungal input received. Konjam more detail kudunga.
+TanglishBridge: Input purinjiduchu. Konjam detail-ah sollunga, better-aa help pannuren.
+--------------------------------------------------------------------------------
+Input [TB015]: weekend plan enna da? padam paakalam ah beach pogalam ah?
+Baseline: Ungal input received. Konjam more detail kudunga.
+TanglishBridge: Input purinjiduchu. Konjam detail-ah sollunga, better-aa help pannuren.
+--------------------------------------------------------------------------------

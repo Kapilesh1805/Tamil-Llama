@@ -1,0 +1,107 @@
+[
+  {
+    "id": "TB001",
+    "script_type": "tanglish",
+    "input": "bro saptiya?",
+    "keywords": ["sapdu", "saapta", "food"],
+    "reference_response": "Sapten da, nee saptiya?"
+  },
+  {
+    "id": "TB002",
+    "script_type": "tanglish",
+    "input": "naan meeting ku varen",
+    "keywords": ["meeting", "varugiren", "coming"],
+    "reference_response": "Sari, meeting ku varen."
+  },
+  {
+    "id": "TB003",
+    "script_type": "tanglish",
+    "input": "enna da pannure?",
+    "keywords": ["enna", "pannuren", "doing"],
+    "reference_response": "Konjam work pannuren da."
+  },
+  {
+    "id": "TB004",
+    "script_type": "tanglish",
+    "input": "tired ah iruku da",
+    "keywords": ["rest", "tired", "irukku"],
+    "reference_response": "Appo konjam rest eduthu relax pannu."
+  },
+  {
+    "id": "TB005",
+    "script_type": "tanglish",
+    "input": "office eppo open aagum?",
+    "keywords": ["office", "open", "time"],
+    "reference_response": "Office eppo open aagum-nu local schedule check pannunga."
+  },
+  {
+    "id": "TB006",
+    "script_type": "romanized",
+    "input": "vanakkam, nee eppadi irukka?",
+    "keywords": ["nalla", "irukken", "eppadi"],
+    "reference_response": "Vanakkam, naan nalla irukken."
+  },
+  {
+    "id": "TB007",
+    "script_type": "romanized",
+    "input": "nandri sollu da",
+    "keywords": ["nandri", "thanks"],
+    "reference_response": "Nandri da."
+  },
+  {
+    "id": "TB008",
+    "script_type": "romanized",
+    "input": "saapta? illa poi saptu vaa",
+    "keywords": ["saapdu", "vaa", "food"],
+    "reference_response": "Illa na poi sapdu, appuram vaa."
+  },
+  {
+    "id": "TB009",
+    "script_type": "tamil",
+    "input": "தமிழ் என்றால் என்ன?",
+    "keywords": ["மொழி", "தமிழ்", "கலாச்சாரம்"],
+    "reference_response": "தமிழ் ஒரு செழுமையான மொழி."
+  },
+  {
+    "id": "TB010",
+    "script_type": "tamil",
+    "input": "உன் பெயர் என்ன?",
+    "keywords": ["பெயர்", "TanglishBridge"],
+    "reference_response": "என் பெயர் TanglishBridge."
+  },
+  {
+    "id": "TB011",
+    "script_type": "english",
+    "input": "what is your name?",
+    "keywords": ["name", "TanglishBridge"],
+    "reference_response": "My name is TanglishBridge."
+  },
+  {
+    "id": "TB012",
+    "script_type": "english",
+    "input": "how are you today?",
+    "keywords": ["fine", "doing well", "today"],
+    "reference_response": "I am doing well today."
+  },
+  {
+    "id": "TB013",
+    "script_type": "mixed",
+    "input": "rain aaguthu da, office ku poganum but traffic romba iruku",
+    "keywords": ["rain", "office", "traffic", "careful"],
+    "reference_response": "Rain aaguthu na konjam careful-ah po, traffic romba irukkum."
+  },
+  {
+    "id": "TB014",
+    "script_type": "mixed",
+    "input": "exam result varutha? pass aanen ah fail aanen ah theriyala",
+    "keywords": ["exam", "result", "pass", "fail"],
+    "reference_response": "Result vandha dhan theriyum, calm-ah iru."
+  },
+  {
+    "id": "TB015",
+    "script_type": "mixed",
+    "input": "weekend plan enna da? padam paakalam ah beach pogalam ah?",
+    "keywords": ["weekend", "plan", "padam", "beach"],
+    "reference_response": "Weekend-ku padam paakalam illa beach pogalam."
+  }
+]

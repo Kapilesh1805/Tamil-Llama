@@ -1,0 +1,18 @@
+{
+  "source": "TanglishBridge curated evaluation set",
+  "description": "Initial CMI snapshot derived from the built-in 15-example evaluation set. Run scripts/eval/cmi_analysis.py for dataset-level statistics.",
+  "total_examples": 15,
+  "script_distribution": {
+    "tanglish": 5,
+    "romanized": 3,
+    "tamil": 2,
+    "english": 2,
+    "mixed": 3
+  },
+  "cmi_bands": {
+    "low": 9,
+    "medium": 5,
+    "high": 1
+  },
+  "estimated_average_cmi": 0.207
+}

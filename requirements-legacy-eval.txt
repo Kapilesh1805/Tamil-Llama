@@ -1,0 +1,7 @@
+# Optional dependencies for legacy OpenAI/LangChain evaluation scripts:
+# - scripts/eval/run_eval.py
+# - scripts/eval/chatgpt_preds.py
+
+langchain>=0.0.330,<0.1.0
+openai>=0.28.0,<1.0.0
+pydantic>=1.10.0,<2.0.0

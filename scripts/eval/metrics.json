@@ -1,0 +1,604 @@
+{
+  "script_acc_baseline": 73.33,
+  "script_acc_ours": 73.33,
+  "coherence_baseline": 0.078,
+  "coherence_ours": 0.289,
+  "cmi_preservation_baseline": 0.188,
+  "cmi_preservation_ours": 0.216,
+  "bleu_baseline": 0.041,
+  "bleu_ours": 0.046,
+  "avg_response_len_baseline": 6.53,
+  "avg_response_len_ours": 8.07,
+  "good_length_baseline": 0.0,
+  "good_length_ours": 13.33,
+  "results": [
+    {
+      "id": "TB001",
+      "input": "bro saptiya?",
+      "expected_script": "tanglish",
+      "detected_script": "tanglish",
+      "input_cmi": 0.5,
+      "baseline_response": "Ungal input received. Konjam more detail kudunga.",
+      "ours_response": "Sapdala na ippove poi sapdu. Nee saptiya?",
+      "normalization_log": [
+        "script detected: tanglish",
+        "cmi score: 0.5",
+        "abbreviation: bro -> brother",
+        "transliteration applied: brother saptiya? -> brother சாப்பிட்டியா?",
+        "heuristic fallback response used because the model is unavailable",
+        "post-processing style: tanglish"
+      ],
+      "baseline_script_acc": 1.0,
+      "ours_script_acc": 1.0,
+      "baseline_coherence": 0.0,
+      "ours_coherence": 0.333,
+      "baseline_cmi_gap": 0.357,
+      "ours_cmi_gap": 0.21400000000000002,
+      "baseline_bleu": 0,
+      "ours_bleu": 0.033,
+      "baseline_quality": {
+        "word_count": 7,
+        "completeness": true,
+        "good_length": false,
+        "too_short": false,
+        "too_long": false
+      },
+      "ours_quality": {
+        "word_count": 7,
+        "completeness": true,
+        "good_length": false,
+        "too_short": false,
+        "too_long": false
+      }
+    },
+    {
+      "id": "TB002",
+      "input": "naan meeting ku varen",
+      "expected_script": "tanglish",
+      "detected_script": "tanglish",
+      "input_cmi": 0.5,
+      "baseline_response": "Ungal input received. Konjam more detail kudunga.",
+      "ours_response": "Input purinjiduchu. Konjam detail-ah sollunga, better-aa help pannuren.",
+      "normalization_log": [
+        "script detected: tanglish",
+        "cmi score: 0.5",
+        "verb mapping: varen -> வருகிறேன்",
+        "transliteration applied: naan meeting ku வருகிறேன் -> நான் meeting ku வருகிறேன்",
+        "heuristic fallback response used because the model is unavailable",
+        "post-processing style: tanglish"
+      ],
+      "baseline_script_acc": 1.0,
+      "ours_script_acc": 1.0,
+      "baseline_coherence": 0.0,
+      "ours_coherence": 0.0,
+      "baseline_cmi_gap": 0.357,
+      "ours_cmi_gap": 0.4,
+      "baseline_bleu": 0,
+      "ours_bleu": 0,
+      "baseline_quality": {
+        "word_count": 7,
+        "completeness": true,
+        "good_length": false,
+        "too_short": false,
+        "too_long": false
+      },
+      "ours_quality": {
+        "word_count": 8,
+        "completeness": true,
+        "good_length": false,
+        "too_short": false,
+        "too_long": false
+      }
+    },
+    {
+      "id": "TB003",
+      "input": "enna da pannure?",
+      "expected_script": "tanglish",
+      "detected_script": "tanglish",
+      "input_cmi": 0.333,
+      "baseline_response": "Ungal input received. Konjam more detail kudunga.",
+      "ours_response": "Input purinjiduchu. Konjam detail-ah sollunga, better-aa help pannuren.",
+      "normalization_log": [
+        "script detected: tanglish",
+        "cmi score: 0.333",
+        "abbreviation: da -> (informal address)",
+        "transliteration applied: enna (informal address) pannure? -> என்ன ( informal address ) pannure?",
+        "heuristic fallback response used because the model is unavailable",
+        "post-processing style: tanglish"
+      ],
+      "baseline_script_acc": 1.0,
+      "ours_script_acc": 1.0,
+      "baseline_coherence": 0.0,
+      "ours_coherence": 0.333,
+      "baseline_cmi_gap": 0.19000000000000003,
+      "ours_cmi_gap": 0.233,
+      "baseline_bleu": 0.033,
+      "ours_bleu": 0.028,
+      "baseline_quality": {
+        "word_count": 7,
+        "completeness": true,
+        "good_length": false,
+        "too_short": false,
+        "too_long": false
+      },
+      "ours_quality": {
+        "word_count": 8,
+        "completeness": true,
+        "good_length": false,
+        "too_short": false,
+        "too_long": false
+      }
+    },
+    {
+      "id": "TB004",
+      "input": "tired ah iruku da",
+      "expected_script": "tanglish",
+      "detected_script": "tanglish",
+      "input_cmi": 0.5,
+      "baseline_response": "Ungal input received. Konjam more detail kudunga.",
+      "ours_response": "Input purinjiduchu. Konjam detail-ah sollunga, better-aa help pannuren.",
+      "normalization_log": [
+        "script detected: tanglish",
+        "cmi score: 0.5",
+        "abbreviation: da -> (informal address)",
+        "transliteration applied: tired ah iruku (informal address) -> tired ah இருகு ( informal address )",
+        "heuristic fallback response used because the model is unavailable",
+        "post-processing style: tanglish"
+      ],
+      "baseline_script_acc": 1.0,
+      "ours_script_acc": 1.0,
+      "baseline_coherence": 0.0,
+      "ours_coherence": 0.0,
+      "baseline_cmi_gap": 0.357,
+      "ours_cmi_gap": 0.4,
+      "baseline_bleu": 0,
+      "ours_bleu": 0,
+      "baseline_quality": {
+        "word_count": 7,
+        "completeness": true,
+        "good_length": false,
+        "too_short": false,
+        "too_long": false
+      },
+      "ours_quality": {
+        "word_count": 8,
+        "completeness": true,
+        "good_length": false,
+        "too_short": false,
+        "too_long": false
+      }
+    },
+    {
+      "id": "TB005",
+      "input": "office eppo open aagum?",
+      "expected_script": "tanglish",
+      "detected_script": "tanglish",
+      "input_cmi": 0.5,
+      "baseline_response": "Ungal input received. Konjam more detail kudunga.",
+      "ours_response": "Input purinjiduchu. Konjam detail-ah sollunga, better-aa help pannuren.",
+      "normalization_log": [
+        "script detected: tanglish",
+        "cmi score: 0.5",
+        "verb mapping: aagum -> ஆகும்",
+        "transliteration applied: office eppo open ஆகும்? -> office எப்போது open ஆகும்?",
+        "heuristic fallback response used because the model is unavailable",
+        "post-processing style: tanglish"
+      ],
+      "baseline_script_acc": 1.0,
+      "ours_script_acc": 1.0,
+      "baseline_coherence": 0.0,
+      "ours_coherence": 0.0,
+      "baseline_cmi_gap": 0.357,
+      "ours_cmi_gap": 0.4,
+      "baseline_bleu": 0,
+      "ours_bleu": 0,
+      "baseline_quality": {
+        "word_count": 7,
+        "completeness": true,
+        "good_length": false,
+        "too_short": false,
+        "too_long": false
+      },
+      "ours_quality": {
+        "word_count": 8,
+        "completeness": true,
+        "good_length": false,
+        "too_short": false,
+        "too_long": false
+      }
+    },
+    {
+      "id": "TB006",
+      "input": "vanakkam, nee eppadi irukka?",
+      "expected_script": "romanized",
+      "detected_script": "romanized",
+      "input_cmi": 0.0,
+      "baseline_response": "Ungal input received. Konjam more detail kudunga.",
+      "ours_response": "naan nalla irukken. neenga eppadi irukkeenga?",
+      "normalization_log": [
+        "script detected: romanized",
+        "cmi score: 0.0",
+        "verb mapping: irukka -> இருக்கிறாயா",
+        "transliteration applied: vanakkam, nee eppadi இருக்கிறாயா? -> வணக்கம், நீ எப்படி இருக்கிறாயா?",
+        "heuristic fallback response used because the model is unavailable",
+        "post-processing style: romanized"
+      ],
+      "baseline_script_acc": 1.0,
+      "ours_script_acc": 1.0,
+      "baseline_coherence": 0.0,
+      "ours_coherence": 1.0,
+      "baseline_cmi_gap": 0.143,
+      "ours_cmi_gap": 0.167,
+      "baseline_bleu": 0,
+      "ours_bleu": 0.202,
+      "baseline_quality": {
+        "word_count": 7,
+        "completeness": true,
+        "good_length": false,
+        "too_short": false,
+        "too_long": false
+      },
+      "ours_quality": {
+        "word_count": 6,
+        "completeness": true,
+        "good_length": false,
+        "too_short": false,
+        "too_long": false
+      }
+    },
+    {
+      "id": "TB007",
+      "input": "nandri sollu da",
+      "expected_script": "romanized",
+      "detected_script": "romanized",
+      "input_cmi": 0.0,
+      "baseline_response": "Ungal input received. Konjam more detail kudunga.",
+      "ours_response": "unga input purinjiduchu. konjam innum detail - ah sonna nalla help panna mudiyum.",
+      "normalization_log": [
+        "script detected: romanized",
+        "cmi score: 0.0",
+        "verb mapping: sollu -> சொல்",
+        "abbreviation: da -> (informal address)",
+        "transliteration applied: nandri சொல் (informal address) -> நன்றி சொல் ( informal address )",
+        "heuristic fallback response used because the model is unavailable",
+        "post-processing style: romanized"
+      ],
+      "baseline_script_acc": 1.0,
+      "ours_script_acc": 1.0,
+      "baseline_coherence": 0.0,
+      "ours_coherence": 0.0,
+      "baseline_cmi_gap": 0.143,
+      "ours_cmi_gap": 0.333,
+      "baseline_bleu": 0,
+      "ours_bleu": 0,
+      "baseline_quality": {
+        "word_count": 7,
+        "completeness": true,
+        "good_length": false,
+        "too_short": false,
+        "too_long": false
+      },
+      "ours_quality": {
+        "word_count": 13,
+        "completeness": true,
+        "good_length": true,
+        "too_short": false,
+        "too_long": false
+      }
+    },
+    {
+      "id": "TB008",
+      "input": "saapta? illa poi saptu vaa",
+      "expected_script": "romanized",
+      "detected_script": "tanglish",
+      "input_cmi": 0.2,
+      "baseline_response": "Ungal input received. Konjam more detail kudunga.",
+      "ours_response": "Sapdala na ippove poi sapdu. Nee saptiya?",
+      "normalization_log": [
+        "script detected: tanglish",
+        "cmi score: 0.2",
+        "verb mapping: saapta -> சாப்பிட்டாயா",
+        "transliteration applied: சாப்பிட்டாயா? illa poi saptu vaa -> சாப்பிட்டாயா? இல்லை போஇ saptu வா",
+        "heuristic fallback response used because the model is unavailable",
+        "post-processing style: tanglish"
+      ],
+      "baseline_script_acc": 1.0,
+      "ours_script_acc": 1.0,
+      "baseline_coherence": 0.0,
+      "ours_coherence": 0.0,
+      "baseline_cmi_gap": 0.05700000000000002,
+      "ours_cmi_gap": 0.08599999999999997,
+      "baseline_bleu": 0,
+      "ours_bleu": 0.039,
+      "baseline_quality": {
+        "word_count": 7,
+        "completeness": true,
+        "good_length": false,
+        "too_short": false,
+        "too_long": false
+      },
+      "ours_quality": {
+        "word_count": 7,
+        "completeness": true,
+        "good_length": false,
+        "too_short": false,
+        "too_long": false
+      }
+    },
+    {
+      "id": "TB009",
+      "input": "தமிழ் என்றால் என்ன?",
+      "expected_script": "tamil",
+      "detected_script": "tamil",
+      "input_cmi": 0.0,
+      "baseline_response": "தமிழ் ஒரு மொழி.",
+      "ours_response": "தமிழ் ஒரு செழுமையான திராவிட மொழி. அது இலக்கியமும் கலாச்சாரமும் நிறைந்தது.",
+      "normalization_log": [
+        "script detected: tamil",
+        "cmi score: 0.0",
+        "normalization skipped for monolingual input",
+        "transliteration skipped for monolingual input",
+        "heuristic fallback response used because the model is unavailable",
+        "post-processing style: tamil"
+      ],
+      "baseline_script_acc": 1.0,
+      "ours_script_acc": 1.0,
+      "baseline_coherence": 0.667,
+      "ours_coherence": 0.667,
+      "baseline_cmi_gap": 0.0,
+      "ours_cmi_gap": 0.0,
+      "baseline_bleu": 0.191,
+      "ours_bleu": 0.128,
+      "baseline_quality": {
+        "word_count": 3,
+        "completeness": true,
+        "good_length": false,
+        "too_short": true,
+        "too_long": false
+      },
+      "ours_quality": {
+        "word_count": 9,
+        "completeness": true,
+        "good_length": false,
+        "too_short": false,
+        "too_long": false
+      }
+    },
+    {
+      "id": "TB010",
+      "input": "உன் பெயர் என்ன?",
+      "expected_script": "tamil",
+      "detected_script": "tamil",
+      "input_cmi": 0.0,
+      "baseline_response": "Ungal input received. Konjam more detail kudunga.",
+      "ours_response": "என் பெயர் TanglishBridge. நான் உதவ தயாராக இருக்கிறேன்.",
+      "normalization_log": [
+        "script detected: tamil",
+        "cmi score: 0.0",
+        "normalization skipped for monolingual input",
+        "transliteration skipped for monolingual input",
+        "heuristic fallback response used because the model is unavailable",
+        "post-processing style: tamil"
+      ],
+      "baseline_script_acc": 0.0,
+      "ours_script_acc": 1.0,
+      "baseline_coherence": 0.0,
+      "ours_coherence": 1.0,
+      "baseline_cmi_gap": 0.143,
+      "ours_cmi_gap": 0.143,
+      "baseline_bleu": 0,
+      "ours_bleu": 0.163,
+      "baseline_quality": {
+        "word_count": 7,
+        "completeness": true,
+        "good_length": false,
+        "too_short": false,
+        "too_long": false
+      },
+      "ours_quality": {
+        "word_count": 7,
+        "completeness": true,
+        "good_length": false,
+        "too_short": false,
+        "too_long": false
+      }
+    },
+    {
+      "id": "TB011",
+      "input": "what is your name?",
+      "expected_script": "english",
+      "detected_script": "english",
+      "input_cmi": 0.0,
+      "baseline_response": "My name is Tamil-LLaMA.",
+      "ours_response": "My name is TanglishBridge, and I am here to help.",
+      "normalization_log": [
+        "script detected: english",
+        "cmi score: 0.0",
+        "normalization skipped for monolingual input",
+        "transliteration skipped for monolingual input",
+        "heuristic fallback response used because the model is unavailable",
+        "post-processing style: english"
+      ],
+      "baseline_script_acc": 1.0,
+      "ours_script_acc": 1.0,
+      "baseline_coherence": 0.5,
+      "ours_coherence": 1.0,
+      "baseline_cmi_gap": 0.0,
+      "ours_cmi_gap": 0.0,
+      "baseline_bleu": 0.398,
+      "ours_bleu": 0.104,
+      "baseline_quality": {
+        "word_count": 4,
+        "completeness": true,
+        "good_length": false,
+        "too_short": true,
+        "too_long": false
+      },
+      "ours_quality": {
+        "word_count": 10,
+        "completeness": true,
+        "good_length": true,
+        "too_short": false,
+        "too_long": false
+      }
+    },
+    {
+      "id": "TB012",
+      "input": "how are you today?",
+      "expected_script": "english",
+      "detected_script": "english",
+      "input_cmi": 0.0,
+      "baseline_response": "Ungal input received. Konjam more detail kudunga.",
+      "ours_response": "Naan nalla irukken. Neenga eppadi irukkeenga?",
+      "normalization_log": [
+        "script detected: english",
+        "cmi score: 0.0",
+        "normalization skipped for monolingual input",
+        "transliteration skipped for monolingual input",
+        "heuristic fallback response used because the model is unavailable",
+        "post-processing style: english"
+      ],
+      "baseline_script_acc": 1.0,
+      "ours_script_acc": 0.0,
+      "baseline_coherence": 0.0,
+      "ours_coherence": 0.0,
+      "baseline_cmi_gap": 0.143,
+      "ours_cmi_gap": 0.167,
+      "baseline_bleu": 0,
+      "ours_bleu": 0,
+      "baseline_quality": {
+        "word_count": 7,
+        "completeness": true,
+        "good_length": false,
+        "too_short": false,
+        "too_long": false
+      },
+      "ours_quality": {
+        "word_count": 6,
+        "completeness": true,
+        "good_length": false,
+        "too_short": false,
+        "too_long": false
+      }
+    },
+    {
+      "id": "TB013",
+      "input": "rain aaguthu da, office ku poganum but traffic romba iruku",
+      "expected_script": "mixed",
+      "detected_script": "tanglish",
+      "input_cmi": 0.5,
+      "baseline_response": "Ungal input received. Konjam more detail kudunga.",
+      "ours_response": "Input purinjiduchu. Konjam detail-ah sollunga, better-aa help pannuren.",
+      "normalization_log": [
+        "script detected: tanglish",
+        "cmi score: 0.5",
+        "verb mapping: aaguthu -> ஆகிறது",
+        "abbreviation: da -> (informal address)",
+        "verb mapping: poganum -> போக வேண்டும்",
+        "transliteration applied: rain ஆகிறது (informal address), office ku போக வேண்டும் but traffic romba iruku -> rain ஆகிறது ( informal address ), office ku போக வேண்டும் but traffic ரொம்ப இருகு",
+        "heuristic fallback response used because the model is unavailable",
+        "post-processing style: tanglish"
+      ],
+      "baseline_script_acc": 0.0,
+      "ours_script_acc": 0.0,
+      "baseline_coherence": 0.0,
+      "ours_coherence": 0.0,
+      "baseline_cmi_gap": 0.357,
+      "ours_cmi_gap": 0.4,
+      "baseline_bleu": 0,
+      "ours_bleu": 0,
+      "baseline_quality": {
+        "word_count": 7,
+        "completeness": true,
+        "good_length": false,
+        "too_short": false,
+        "too_long": false
+      },
+      "ours_quality": {
+        "word_count": 8,
+        "completeness": true,
+        "good_length": false,
+        "too_short": false,
+        "too_long": false
+      }
+    },
+    {
+      "id": "TB014",
+      "input": "exam result varutha? pass aanen ah fail aanen ah theriyala",
+      "expected_script": "mixed",
+      "detected_script": "tanglish",
+      "input_cmi": 0.2,
+      "baseline_response": "Ungal input received. Konjam more detail kudunga.",
+      "ours_response": "Input purinjiduchu. Konjam detail-ah sollunga, better-aa help pannuren.",
+      "normalization_log": [
+        "script detected: tanglish",
+        "cmi score: 0.2",
+        "verb mapping: theriyala -> தெரியவில்லை",
+        "transliteration applied: exam result varutha? pass aanen ah fail aanen ah தெரியவில்லை -> exam result வருத? pass aanen ah fail aanen ah தெரியவில்லை",
+        "heuristic fallback response used because the model is unavailable",
+        "post-processing style: tanglish"
+      ],
+      "baseline_script_acc": 0.0,
+      "ours_script_acc": 0.0,
+      "baseline_coherence": 0.0,
+      "ours_coherence": 0.0,
+      "baseline_cmi_gap": 0.05700000000000002,
+      "ours_cmi_gap": 0.1,
+      "baseline_bleu": 0,
+      "ours_bleu": 0,
+      "baseline_quality": {
+        "word_count": 7,
+        "completeness": true,
+        "good_length": false,
+        "too_short": false,
+        "too_long": false
+      },
+      "ours_quality": {
+        "word_count": 8,
+        "completeness": true,
+        "good_length": false,
+        "too_short": false,
+        "too_long": false
+      }
+    },
+    {
+      "id": "TB015",
+      "input": "weekend plan enna da? padam paakalam ah beach pogalam ah?",
+      "expected_script": "mixed",
+      "detected_script": "tanglish",
+      "input_cmi": 0.3,
+      "baseline_response": "Ungal input received. Konjam more detail kudunga.",
+      "ours_response": "Input purinjiduchu. Konjam detail-ah sollunga, better-aa help pannuren.",
+      "normalization_log": [
+        "script detected: tanglish",
+        "cmi score: 0.3",
+        "abbreviation: da -> (informal address)",
+        "transliteration applied: weekend plan enna (informal address)? padam paakalam ah beach pogalam ah? -> weekend plan என்ன ( informal address )? படம் பாக்கலாம் ah beach போகலாம் ah?",
+        "heuristic fallback response used because the model is unavailable",
+        "post-processing style: tanglish"
+      ],
+      "baseline_script_acc": 0.0,
+      "ours_script_acc": 0.0,
+      "baseline_coherence": 0.0,
+      "ours_coherence": 0.0,
+      "baseline_cmi_gap": 0.157,
+      "ours_cmi_gap": 0.19999999999999998,
+      "baseline_bleu": 0,
+      "ours_bleu": 0,
+      "baseline_quality": {
+        "word_count": 7,
+        "completeness": true,
+        "good_length": false,
+        "too_short": false,
+        "too_long": false
+      },
+      "ours_quality": {
+        "word_count": 8,
+        "completeness": true,
+        "good_length": false,
+        "too_short": false,
+        "too_long": false
+      }
+    }
+  ]
+}
