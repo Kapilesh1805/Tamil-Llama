@@ -153,17 +153,19 @@ class TanglishBridgePipeline:
             print("[TanglishBridgePipeline] Building generation prompt...")
             style_instructions = {
                 "tanglish": (
-                    "Reply to the following casual Tamil message in one short natural conversational Tamil reply. "
-                    "Answer the message directly. Do not explain it. Do not translate it. Do not analyze it. "
+                    "Reply to the following casual Tamil message like a close friend chatting naturally. "
+                    "Use one short conversational Tamil reply. Answer the message directly. "
+                    "Do not explain it. Do not translate it. Do not analyze it. "
                     "Do not say you are an AI unless asked."
                 ),
                 "romanized": (
-                    "Reply to the following Tamil message in one short natural conversational Tamil reply. "
-                    "Answer the message directly. Do not explain it. Do not translate it. Do not analyze it. "
+                    "Reply to the following Tamil message like a close friend chatting naturally. "
+                    "Use one short conversational Tamil reply. Answer the message directly. "
+                    "Do not explain it. Do not translate it. Do not analyze it. "
                     "Do not say you are an AI unless asked."
                 ),
                 "tamil": (
-                    "கீழே உள்ள செய்திக்கு ஒரு குறுகிய இயல்பான தமிழ் பதில் அளிக்கவும். "
+                    "கீழே உள்ள செய்திக்கு நண்பரைப்போல் ஒரு குறுகிய இயல்பான தமிழ் பதில் அளிக்கவும். "
                     "செய்தியை விளக்காதீர்கள். மொழிபெயர்க்காதீர்கள். நேராக பதிலளிக்கவும்."
                 ),
                 "english": (
@@ -171,7 +173,8 @@ class TanglishBridgePipeline:
                     "Answer directly. Do not explain or translate the message."
                 ),
                 "mixed": (
-                    "Reply to the following message in one short natural conversational Tamil reply. "
+                    "Reply to the following message like a close friend chatting naturally. "
+                    "Use one short natural conversational Tamil reply. "
                     "Keep English technical words only when necessary. Answer directly. "
                     "Do not explain or translate the message."
                 ),
