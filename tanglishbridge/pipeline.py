@@ -153,24 +153,27 @@ class TanglishBridgePipeline:
             print("[TanglishBridgePipeline] Building generation prompt...")
             style_instructions = {
                 "tanglish": (
-                    "Understand the colloquial Tamil meaning of the message below and answer briefly in simple conversational Tamil. "
-                    "Do not explain the translation. Do not describe the user's message. Do not say you are an AI unless asked."
+                    "Reply to the following casual Tamil message in one short natural conversational Tamil reply. "
+                    "Answer the message directly. Do not explain it. Do not translate it. Do not analyze it. "
+                    "Do not say you are an AI unless asked."
                 ),
                 "romanized": (
-                    "Understand the Romanized Tamil message below and answer briefly in simple conversational Tamil. "
-                    "Do not explain the translation. Do not say you are an AI unless asked."
+                    "Reply to the following Tamil message in one short natural conversational Tamil reply. "
+                    "Answer the message directly. Do not explain it. Do not translate it. Do not analyze it. "
+                    "Do not say you are an AI unless asked."
                 ),
                 "tamil": (
-                    "நீங்கள் உதவிகரமான தமிழ் உரையாடல் உதவியாளர். "
-                    "பதிலை சுருக்கமாகவும் இயல்பாகவும் தமிழில் அளிக்கவும்."
+                    "கீழே உள்ள செய்திக்கு ஒரு குறுகிய இயல்பான தமிழ் பதில் அளிக்கவும். "
+                    "செய்தியை விளக்காதீர்கள். மொழிபெயர்க்காதீர்கள். நேராக பதிலளிக்கவும்."
                 ),
                 "english": (
-                    "You are a helpful assistant. Reply only in English, briefly and naturally. "
-                    "Do not switch to Tamil unless the user asks."
+                    "Reply to the following message in one short natural English reply. "
+                    "Answer directly. Do not explain or translate the message."
                 ),
                 "mixed": (
-                    "Understand the code-mixed Tamil-English message below and answer briefly in simple conversational Tamil. "
-                    "Keep English technical words only when necessary. Do not explain the translation."
+                    "Reply to the following message in one short natural conversational Tamil reply. "
+                    "Keep English technical words only when necessary. Answer directly. "
+                    "Do not explain or translate the message."
                 ),
             }
             instruction = style_instructions.get(script_type, style_instructions["mixed"])
@@ -179,6 +182,63 @@ class TanglishBridgePipeline:
         except Exception as exc:
             logger.exception("Error while building prompt: %s", exc)
             return f"### Instruction:\nAnswer naturally.\n\nUser message: {input_text}\n\n### Response:\n"
+
+    def _is_explanatory_response(self, response: str) -> bool:
+        """
+        Detect whether a generated response is explaining the input instead of replying.
+
+        Args:
+            response: Raw generated model text.
+
+        Returns:
+            ``True`` when the response appears translation-like or explanatory.
+        """
+        try:
+            print("[TanglishBridgePipeline] Checking whether response is explanatory...")
+            lowered = response.lower()
+            markers = [
+                "பொருள்",
+                "அதாவது",
+                "என்பது",
+                "ஆங்கிலத்தில்",
+                "தமிழில்",
+                "means",
+                "in english",
+                "in tamil",
+                "translation",
+            ]
+            return any(marker in lowered for marker in markers)
+        except Exception as exc:
+            logger.exception("Error while checking explanatory response: %s", exc)
+            return False
+
+    def _build_reply_only_prompt(self, model_input: str, script_type: str) -> str:
+        """
+        Build a stricter retry prompt that asks only for a direct reply.
+
+        Args:
+            model_input: Clean model-facing text.
+            script_type: Detected script category.
+
+        Returns:
+            A stricter instruction-formatted prompt string.
+        """
+        try:
+            print("[TanglishBridgePipeline] Building reply-only prompt...")
+            if script_type == "english":
+                instruction = (
+                    "Reply directly to this message in one short English sentence. "
+                    "Do not explain, translate, or define anything."
+                )
+            else:
+                instruction = (
+                    "இந்த செய்திக்கு நேராக ஒரு குறுகிய இயல்பான பதில் சொல்லவும். "
+                    "விளக்காதீர்கள். மொழிபெயர்க்காதீர்கள். செய்தியை பற்றி பேசாதீர்கள்."
+                )
+            return f"### Instruction:\n{instruction}\n\n{model_input}\n\n### Response:\n"
+        except Exception as exc:
+            logger.exception("Error while building reply-only prompt: %s", exc)
+            return f"### Instruction:\nReply directly.\n\n{model_input}\n\n### Response:\n"
 
     def _prepare_model_text(self, text: str, script_type: str) -> str:
         """
@@ -282,6 +342,13 @@ class TanglishBridgePipeline:
                     max_new_tokens=effective_max_new_tokens,
                     fast_mode=fast_mode,
                 )
+                if script_type in {"tanglish", "romanized", "mixed", "tamil"} and self._is_explanatory_response(raw_response):
+                    processing_log.append("explanatory response detected; retrying with reply-only prompt")
+                    raw_response = self._generate_with_model(
+                        prompt=self._build_reply_only_prompt(model_input=model_input, script_type=script_type),
+                        max_new_tokens=effective_max_new_tokens,
+                        fast_mode=True,
+                    )
             else:
                 raw_response = self._fallback_response(input_text=input_text, script_type=script_type)
                 processing_log.append("heuristic fallback response used because the model is unavailable")
