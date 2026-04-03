@@ -80,9 +80,16 @@ class RomanizedTamilTransliterator:
         "bro",
         "da",
         "di",
+        "dei",
+        "anna",
+        "akka",
+        "macha",
+        "machi",
         "ku",
         "ah",
         "la",
+        "pa",
+        "ma",
         "super",
         "office",
         "meeting",
@@ -113,6 +120,38 @@ class RomanizedTamilTransliterator:
         "movie",
     }
 
+    STRONG_TAMIL_FUNCTION_WORDS = {
+        "vanakkam",
+        "nandri",
+        "naan",
+        "nan",
+        "nee",
+        "ni",
+        "neenga",
+        "enna",
+        "ennada",
+        "epdi",
+        "eppadi",
+        "eppo",
+        "ippo",
+        "inga",
+        "anga",
+        "romba",
+        "konjam",
+        "nalla",
+        "seri",
+        "sari",
+        "illa",
+        "illai",
+        "vaa",
+        "vaanga",
+        "sollu",
+        "paaru",
+        "padam",
+        "paakalam",
+        "pogalam",
+    }
+
     def __init__(self) -> None:
         """
         Initialize transliteration helpers and lexical resources.
@@ -123,6 +162,38 @@ class RomanizedTamilTransliterator:
             self.normalizer = TanglishNormalizer()
         except Exception as exc:
             logger.exception("Failed to initialize transliterator: %s", exc)
+
+    def _should_transliterate_token(self, token: str, detected_style: str) -> bool:
+        """
+        Decide whether a token should be transliterated into Tamil script.
+
+        Args:
+            token: Lowercased token candidate.
+            detected_style: Detected text-level style.
+
+        Returns:
+            ``True`` when transliteration is likely to improve model understanding.
+        """
+        try:
+            print("[RomanizedTamilTransliterator] Deciding token transliteration...")
+            if not token or token in self.KEEP_AS_IS_WORDS:
+                return False
+            if token in self.normalizer.TECHNICAL_WORDS:
+                return False
+            if token in self.normalizer.VERB_MAPPINGS:
+                return True
+            if token in self.STRONG_TAMIL_FUNCTION_WORDS:
+                return True
+            if token in self.SPECIAL_ROMANIZED_MAPPINGS:
+                return True
+            if detected_style == "romanized" and token in self.detector.ROMANIZED_TAMIL_WORDS:
+                return True
+            if detected_style in {"tanglish", "mixed"} and token in self.detector.ROMANIZED_TAMIL_WORDS and len(token) >= 5:
+                return True
+            return False
+        except Exception as exc:
+            logger.exception("Error while deciding transliteration: %s", exc)
+            return False
 
     def romanized_to_tamil(self, text: str) -> str:
         """
@@ -136,6 +207,7 @@ class RomanizedTamilTransliterator:
         """
         try:
             print("[RomanizedTamilTransliterator] Converting Romanized Tamil to Tamil script...")
+            detected_style = self.detector.detect_script(text)
             tokens = re.findall(r"[\u0B80-\u0BFF]+|[A-Za-z]+(?:'[A-Za-z]+)?|\d+|[^\w\s]", text, flags=re.UNICODE)
             converted_tokens = []
 
@@ -149,11 +221,11 @@ class RomanizedTamilTransliterator:
                     converted_tokens.append(token)
                 elif lowered in self.KEEP_AS_IS_WORDS:
                     converted_tokens.append(lowered)
-                elif lowered in self.SPECIAL_ROMANIZED_MAPPINGS:
+                elif lowered in self.SPECIAL_ROMANIZED_MAPPINGS and self._should_transliterate_token(lowered, detected_style):
                     converted_tokens.append(self.SPECIAL_ROMANIZED_MAPPINGS[lowered])
-                elif lowered in self.normalizer.VERB_MAPPINGS:
+                elif lowered in self.normalizer.VERB_MAPPINGS and self._should_transliterate_token(lowered, detected_style):
                     converted_tokens.append(self.normalizer.VERB_MAPPINGS[lowered])
-                elif self.is_romanized_tamil(lowered):
+                elif self.is_romanized_tamil(lowered) and self._should_transliterate_token(lowered, detected_style):
                     try:
                         detected_script = detect(lowered)
                         logger.info("Indic transliteration detect(%s) -> %s", lowered, detected_script)
@@ -237,7 +309,7 @@ class RomanizedTamilTransliterator:
                 return True
             tamil_like_pattern = re.search(r"(aa|ee|oo|zh|ng|th|dh|kk|pp|tt|rr|ll|nn|ai|au)", cleaned)
             tamil_like_ending = re.search(r"(ren|rom|nga|num|la|ku|da|di|ya|tha|lam|ttu|cha|um|ala|iya)$", cleaned)
-            return bool(tamil_like_pattern and tamil_like_ending)
+            return bool(len(cleaned) >= 5 and tamil_like_pattern and tamil_like_ending)
         except Exception as exc:
             logger.exception("Error while checking Romanized Tamil token: %s", exc)
             return False

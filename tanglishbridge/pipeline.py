@@ -137,6 +137,53 @@ class TanglishBridgePipeline:
             self.model_unavailable_reason = str(exc)
             logger.exception("Model loading failed. Falling back to heuristic responses: %s", exc)
 
+    def _build_prompt(self, input_text: str, model_input: str, script_type: str) -> str:
+        """
+        Build a style-aware prompt that keeps the user's language register intact.
+
+        Args:
+            input_text: Original user message.
+            model_input: Normalized or transliterated hint for the model.
+            script_type: Detected script category.
+
+        Returns:
+            An instruction-formatted prompt string.
+        """
+        try:
+            print("[TanglishBridgePipeline] Building generation prompt...")
+            style_instructions = {
+                "tanglish": (
+                    "You are TanglishBridge, a helpful Tamil-English chat assistant. "
+                    "Reply in short natural Tanglish. Keep casual words like bro, da, okay, office, meeting when natural. "
+                    "Do not become overly formal. Do not say you are an AI unless asked."
+                ),
+                "romanized": (
+                    "You are TanglishBridge. Understand Romanized Tamil and reply only in natural Romanized Tamil. "
+                    "Do not use Tamil script. Keep the reply short and conversational."
+                ),
+                "tamil": (
+                    "நீங்கள் உதவிகரமான தமிழ் உரையாடல் உதவியாளர். "
+                    "பதிலை சுருக்கமாகவும் இயல்பாகவும் தமிழில் அளிக்கவும்."
+                ),
+                "english": (
+                    "You are a helpful assistant. Reply only in English, briefly and naturally. "
+                    "Do not switch to Tamil unless the user asks."
+                ),
+                "mixed": (
+                    "You are TanglishBridge, a helpful assistant for code-mixed Tamil-English messages. "
+                    "Reply briefly in natural Tanglish and preserve English technical words when natural."
+                ),
+            }
+            instruction = style_instructions.get(script_type, style_instructions["mixed"])
+            if model_input == input_text:
+                message_block = f"User message: {input_text}"
+            else:
+                message_block = f"Original user message: {input_text}\nTamil-aware hint: {model_input}"
+            return f"### Instruction:\n{instruction}\n\n{message_block}\n\n### Response:\n"
+        except Exception as exc:
+            logger.exception("Error while building prompt: %s", exc)
+            return f"### Instruction:\nAnswer naturally.\n\nUser message: {input_text}\n\n### Response:\n"
+
     def generate(self, input_text: str, max_new_tokens: int = 200, fast_mode: bool = False) -> Dict[str, object]:
         """
         Run the full TanglishBridge pipeline for a single user input.
@@ -184,7 +231,7 @@ class TanglishBridgePipeline:
             else:
                 processing_log.append("transliteration skipped for monolingual input")
 
-            prompt = f"### Instruction:\n{model_input}\n\n### Response:\n"
+            prompt = self._build_prompt(input_text=input_text, model_input=model_input, script_type=script_type)
 
             if self.model_available:
                 raw_response = self._generate_with_model(
@@ -249,6 +296,8 @@ class TanglishBridgePipeline:
                 "max_new_tokens": max_new_tokens,
                 "pad_token_id": self.tokenizer.pad_token_id,
                 "eos_token_id": self.tokenizer.eos_token_id,
+                "repetition_penalty": 1.1,
+                "no_repeat_ngram_size": 3,
             }
             if fast_mode:
                 generation_kwargs["do_sample"] = False

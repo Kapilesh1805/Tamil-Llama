@@ -25,16 +25,8 @@ class TanglishNormalizer:
         "u": "you",
         "ur": "your",
         "urs": "yours",
-        "da": "(informal address)",
-        "di": "(informal address female)",
-        "bro": "brother",
-        "macha": "friend",
-        "machi": "friend",
-        "anna": "elder brother",
-        "akka": "elder sister",
-        "thambi": "younger brother",
         "pls": "please",
-        "plsda": "please (informal address)",
+        "plsda": "please da",
         "plz": "please",
         "tmrw": "tomorrow",
         "tmr": "tomorrow",
@@ -92,6 +84,21 @@ class TanglishNormalizer:
         "afaik": "as far as i know",
         "msgme": "message me",
         "callme": "call me",
+    }
+
+    PRESERVE_COLLOQUIAL_WORDS = {
+        "bro",
+        "da",
+        "di",
+        "dei",
+        "macha",
+        "machi",
+        "anna",
+        "akka",
+        "thambi",
+        "pa",
+        "ma",
+        "machan",
     }
 
     VERB_MAPPINGS = {
@@ -175,6 +182,20 @@ class TanglishNormalizer:
         "umbrella",
     }
 
+    ENGLISH_STYLE_HINTS = {
+        "what",
+        "why",
+        "how",
+        "when",
+        "where",
+        "who",
+        "your",
+        "you",
+        "name",
+        "today",
+        "help",
+    }
+
     def __init__(self) -> None:
         """
         Initialize stateful normalization history.
@@ -182,9 +203,28 @@ class TanglishNormalizer:
         try:
             print("[TanglishNormalizer] Initializing normalizer...")
             self.last_log: List[str] = []
+            self.last_input: str = ""
         except Exception as exc:
             logger.exception("Failed to initialize TanglishNormalizer: %s", exc)
             self.last_log = []
+            self.last_input = ""
+
+    def _should_preserve_token(self, token: str) -> bool:
+        """
+        Decide whether a casual Tanglish token should stay as-is.
+
+        Args:
+            token: Lowercased token candidate.
+
+        Returns:
+            ``True`` when the token is better preserved conversationally.
+        """
+        try:
+            print("[TanglishNormalizer] Evaluating colloquial preservation...")
+            return token in self.PRESERVE_COLLOQUIAL_WORDS
+        except Exception as exc:
+            logger.exception("Error while evaluating token preservation: %s", exc)
+            return False
 
     def normalize(self, text: str) -> str:
         """
@@ -199,6 +239,7 @@ class TanglishNormalizer:
         try:
             print("[TanglishNormalizer] Normalizing input text...")
             self.last_log = []
+            self.last_input = text
             tokens = re.findall(r"[\u0B80-\u0BFF]+|[A-Za-z]+(?:'[A-Za-z]+)?|\d+|[^\w\s]", text, flags=re.UNICODE)
             normalized_tokens: List[str] = []
 
@@ -210,13 +251,18 @@ class TanglishNormalizer:
                 lowered = token.lower()
                 replacement = token
 
-                if lowered in self.ABBREVIATIONS:
+                if self._should_preserve_token(lowered):
+                    replacement = lowered
+                    self.last_log.append(f"colloquial preserved: {token} -> {replacement}")
+                elif lowered in self.ABBREVIATIONS:
                     replacement = self.ABBREVIATIONS[lowered]
                     self.last_log.append(f"abbreviation: {token} -> {replacement}")
                 elif lowered in self.VERB_MAPPINGS:
                     replacement = self.VERB_MAPPINGS[lowered]
                     self.last_log.append(f"verb mapping: {token} -> {replacement}")
                 elif lowered in self.TECHNICAL_WORDS:
+                    replacement = lowered
+                elif lowered in self.ENGLISH_STYLE_HINTS:
                     replacement = lowered
                 elif lowered.isascii():
                     replacement = lowered
@@ -248,7 +294,8 @@ class TanglishNormalizer:
         """
         try:
             print("[TanglishNormalizer] Fetching normalization log...")
-            self.normalize(text)
+            if text != self.last_input:
+                self.normalize(text)
             return list(self.last_log)
         except Exception as exc:
             logger.exception("Error while building normalization log: %s", exc)

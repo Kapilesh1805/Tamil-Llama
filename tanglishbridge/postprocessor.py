@@ -22,6 +22,13 @@ class ResponsePostProcessor:
     Cleans model output and aligns its presentation with the user's input style.
     """
 
+    AI_BOILERPLATE_PATTERNS = [
+        r"^ஆம்,\s*நான் ஒரு AI .*?$",
+        r"^நான் ஒரு AI .*?$",
+        r"^i am an ai .*?$",
+        r"^as an ai .*?$",
+    ]
+
     TANGISH_WORD_SWAPS = {
         "அலுவலகம்": "office",
         "சந்திப்பு": "meeting",
@@ -57,6 +64,9 @@ class ResponsePostProcessor:
         try:
             print("[ResponsePostProcessor] Processing model response...")
             cleaned = self.clean_response(response)
+            if input_style in {"tanglish", "romanized", "english"}:
+                for pattern in self.AI_BOILERPLATE_PATTERNS:
+                    cleaned = re.sub(pattern, "", cleaned, flags=re.IGNORECASE)
             cleaned = re.sub(r"\b(\w+)( \1\b)+", r"\1", cleaned, flags=re.IGNORECASE)
             cleaned = re.sub(r"([?.!,])\1+", r"\1", cleaned)
 
@@ -79,6 +89,8 @@ class ResponsePostProcessor:
             elif input_style == "tanglish" and self.detector.detect_script(cleaned) == "tamil":
                 for tamil_word, english_word in self.TANGISH_WORD_SWAPS.items():
                     cleaned = cleaned.replace(tamil_word, english_word)
+            elif input_style == "english" and self.detector.detect_script(cleaned) != "english":
+                cleaned = "I understood your message. Let me answer that in English."
 
             if not cleaned.strip():
                 fallback_map = {
@@ -108,6 +120,7 @@ class ResponsePostProcessor:
             print("[ResponsePostProcessor] Cleaning response text...")
             cleaned = text.replace("### Response:", "").replace("### Instruction:", "")
             cleaned = re.sub(r"^(assistant|response)\s*:\s*", "", cleaned, flags=re.IGNORECASE)
+            cleaned = re.sub(r'^["“”]+|["“”]+$', "", cleaned)
             cleaned = re.sub(r"\s+", " ", cleaned).strip()
 
             if cleaned and cleaned[-1] not in ".!?":
