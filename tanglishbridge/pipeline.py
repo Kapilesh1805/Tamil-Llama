@@ -227,12 +227,18 @@ class TanglishBridgePipeline:
                 "நிச்சயமாக",
                 "உங்களுக்கு உதவ",
                 "நான் உங்களுக்கு உதவ",
+                "எப்படி உதவ",
+                "உதவ முடியும்",
+                "வணக்கம்! நான்",
+                "வணக்கம் நான்",
                 "i can help",
                 "i am here to help",
                 "sure, i can help",
                 "how can i help",
             ]
-            return any(marker in lowered for marker in markers)
+            if any(marker in lowered for marker in markers):
+                return True
+            return "உதவ" in lowered and "?" in response
         except Exception as exc:
             logger.exception("Error while checking generic assistant response: %s", exc)
             return False
