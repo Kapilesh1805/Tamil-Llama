@@ -153,13 +153,12 @@ class TanglishBridgePipeline:
             print("[TanglishBridgePipeline] Building generation prompt...")
             style_instructions = {
                 "tanglish": (
-                    "You are TanglishBridge, a helpful Tamil-English chat assistant. "
-                    "Reply in short natural Tanglish. Keep casual words like bro, da, okay, office, meeting when natural. "
-                    "Do not become overly formal. Do not say you are an AI unless asked."
+                    "Understand the colloquial Tamil meaning of the message below and answer briefly in simple conversational Tamil. "
+                    "Do not explain the translation. Do not describe the user's message. Do not say you are an AI unless asked."
                 ),
                 "romanized": (
-                    "You are TanglishBridge. Understand Romanized Tamil and reply only in natural Romanized Tamil. "
-                    "Do not use Tamil script. Keep the reply short and conversational."
+                    "Understand the Romanized Tamil message below and answer briefly in simple conversational Tamil. "
+                    "Do not explain the translation. Do not say you are an AI unless asked."
                 ),
                 "tamil": (
                     "நீங்கள் உதவிகரமான தமிழ் உரையாடல் உதவியாளர். "
@@ -170,19 +169,59 @@ class TanglishBridgePipeline:
                     "Do not switch to Tamil unless the user asks."
                 ),
                 "mixed": (
-                    "You are TanglishBridge, a helpful assistant for code-mixed Tamil-English messages. "
-                    "Reply briefly in natural Tanglish and preserve English technical words when natural."
+                    "Understand the code-mixed Tamil-English message below and answer briefly in simple conversational Tamil. "
+                    "Keep English technical words only when necessary. Do not explain the translation."
                 ),
             }
             instruction = style_instructions.get(script_type, style_instructions["mixed"])
-            if model_input == input_text:
-                message_block = f"User message: {input_text}"
-            else:
-                message_block = f"Original user message: {input_text}\nTamil-aware hint: {model_input}"
+            message_block = model_input if script_type in {"tanglish", "romanized", "mixed"} else input_text
             return f"### Instruction:\n{instruction}\n\n{message_block}\n\n### Response:\n"
         except Exception as exc:
             logger.exception("Error while building prompt: %s", exc)
             return f"### Instruction:\nAnswer naturally.\n\nUser message: {input_text}\n\n### Response:\n"
+
+    def _prepare_model_text(self, text: str, script_type: str) -> str:
+        """
+        Convert mixed colloquial input into a cleaner model-facing text.
+
+        Args:
+            text: Normalized or transliterated text.
+            script_type: Detected script category.
+
+        Returns:
+            A cleaner Tamil-first text for model prompting.
+        """
+        try:
+            print("[TanglishBridgePipeline] Preparing model-facing text...")
+            if script_type not in {"tanglish", "romanized", "mixed"}:
+                return text
+
+            filler_words = {
+                "bro",
+                "da",
+                "di",
+                "dei",
+                "macha",
+                "machi",
+                "anna",
+                "akka",
+                "pa",
+                "ma",
+            }
+            tokens = text.split()
+            if len(tokens) > 1:
+                tokens = [token for token in tokens if token.lower().strip(".,!?") not in filler_words]
+
+            cleaned = " ".join(tokens).strip()
+            cleaned = cleaned or text
+            if script_type in {"tanglish", "romanized"} and not any("\u0B80" <= ch <= "\u0BFF" for ch in cleaned):
+                transliterated = self.transliterator.smart_transliterate(cleaned)
+                if transliterated:
+                    cleaned = transliterated
+            return cleaned
+        except Exception as exc:
+            logger.exception("Error while preparing model text: %s", exc)
+            return text
 
     def generate(self, input_text: str, max_new_tokens: int = 200, fast_mode: bool = False) -> Dict[str, object]:
         """
@@ -228,6 +267,10 @@ class TanglishBridgePipeline:
                     processing_log.append(f"transliteration applied: {normalized_input} -> {model_input}")
                 else:
                     processing_log.append("transliteration not required")
+                prepared_input = self._prepare_model_text(model_input, script_type)
+                if prepared_input != model_input:
+                    processing_log.append(f"model text prepared: {model_input} -> {prepared_input}")
+                    model_input = prepared_input
             else:
                 processing_log.append("transliteration skipped for monolingual input")
 
@@ -243,7 +286,12 @@ class TanglishBridgePipeline:
                 raw_response = self._fallback_response(input_text=input_text, script_type=script_type)
                 processing_log.append("heuristic fallback response used because the model is unavailable")
 
-            response_style = script_type if script_type in {"tanglish", "romanized", "tamil", "english"} else "tanglish"
+            uses_romanized_output = script_type in {"tanglish", "romanized"} and not any(
+                "\u0B80" <= ch <= "\u0BFF" for ch in input_text
+            )
+            response_style = "romanized" if uses_romanized_output else (
+                script_type if script_type in {"tanglish", "romanized", "tamil", "english"} else "tanglish"
+            )
             final_response = self.postprocessor.process(raw_response, response_style)
             processing_log.append(f"post-processing style: {response_style}")
 
