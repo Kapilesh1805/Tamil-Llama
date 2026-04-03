@@ -139,11 +139,11 @@ class TanglishBridgePipeline:
 
     def _build_prompt(self, input_text: str, model_input: str, script_type: str) -> str:
         """
-        Build a style-aware prompt that keeps the user's language register intact.
+        Build a direct-reply prompt for the base generation pass.
 
         Args:
             input_text: Original user message.
-            model_input: Normalized or transliterated hint for the model.
+            model_input: Cleaned model-facing message.
             script_type: Detected script category.
 
         Returns:
@@ -154,18 +154,14 @@ class TanglishBridgePipeline:
             style_instructions = {
                 "tanglish": (
                     "Reply to the following casual Tamil message like a close friend chatting naturally. "
-                    "Use one short conversational Tamil reply. Answer the message directly. "
-                    "Do not explain it. Do not translate it. Do not analyze it. "
-                    "Do not say you are an AI unless asked."
+                    "Use one short conversational Tamil reply. Answer directly. Do not explain, translate, or analyze."
                 ),
                 "romanized": (
                     "Reply to the following Tamil message like a close friend chatting naturally. "
-                    "Use one short conversational Tamil reply. Answer the message directly. "
-                    "Do not explain it. Do not translate it. Do not analyze it. "
-                    "Do not say you are an AI unless asked."
+                    "Use one short conversational Tamil reply. Answer directly. Do not explain, translate, or analyze."
                 ),
                 "tamil": (
-                    "கீழே உள்ள செய்திக்கு நண்பரைப்போல் ஒரு குறுகிய இயல்பான தமிழ் பதில் அளிக்கவும். "
+                    "கீழே உள்ள செய்திக்கு நண்பரைப்போல் ஒரு குறுகிய இயல்பான தமிழ் பதில் சொல்லவும். "
                     "செய்தியை விளக்காதீர்கள். மொழிபெயர்க்காதீர்கள். நேராக பதிலளிக்கவும்."
                 ),
                 "english": (
@@ -174,8 +170,7 @@ class TanglishBridgePipeline:
                 ),
                 "mixed": (
                     "Reply to the following message like a close friend chatting naturally. "
-                    "Use one short natural conversational Tamil reply. "
-                    "Keep English technical words only when necessary. Answer directly. "
+                    "Use one short natural conversational Tamil reply. Keep English technical words only when necessary. "
                     "Do not explain or translate the message."
                 ),
             }
@@ -184,7 +179,7 @@ class TanglishBridgePipeline:
             return f"### Instruction:\n{instruction}\n\n{message_block}\n\n### Response:\n"
         except Exception as exc:
             logger.exception("Error while building prompt: %s", exc)
-            return f"### Instruction:\nAnswer naturally.\n\nUser message: {input_text}\n\n### Response:\n"
+            return f"### Instruction:\nReply naturally.\n\n{model_input}\n\n### Response:\n"
 
     def _is_explanatory_response(self, response: str) -> bool:
         """
@@ -223,16 +218,15 @@ class TanglishBridgePipeline:
             response: Raw generated model text.
 
         Returns:
-            ``True`` when the response looks like a generic assistant boilerplate.
+            ``True`` when the response looks like generic assistant boilerplate.
         """
         try:
             print("[TanglishBridgePipeline] Checking whether response is generic assistant text...")
             lowered = response.lower()
             markers = [
                 "நிச்சயமாக",
-                "உதவ",
                 "உங்களுக்கு உதவ",
-                "நான் உங்களுக்கு",
+                "நான் உங்களுக்கு உதவ",
                 "i can help",
                 "i am here to help",
                 "sure, i can help",
@@ -241,6 +235,32 @@ class TanglishBridgePipeline:
             return any(marker in lowered for marker in markers)
         except Exception as exc:
             logger.exception("Error while checking generic assistant response: %s", exc)
+            return False
+
+    def _is_awkward_dialogue_response(self, response: str) -> bool:
+        """
+        Detect short but unnatural dialogue replies.
+
+        Args:
+            response: Raw generated model text.
+
+        Returns:
+            ``True`` when the reply is grammatically awkward or incomplete.
+        """
+        try:
+            print("[TanglishBridgePipeline] Checking whether response is awkward dialogue...")
+            lowered = response.lower().strip()
+            markers = [
+                "நான் இல்லை",
+                "இல்லை, நான் இல்லை",
+                "ஆம், நான்",
+                "இல்லை, நான்",
+            ]
+            if any(marker in lowered for marker in markers):
+                return True
+            return len(lowered.split()) <= 3 and lowered.endswith("இல்லை.")
+        except Exception as exc:
+            logger.exception("Error while checking awkward dialogue response: %s", exc)
             return False
 
     def _build_reply_only_prompt(self, model_input: str, script_type: str) -> str:
@@ -273,7 +293,7 @@ class TanglishBridgePipeline:
 
     def _build_few_shot_casual_prompt(self, model_input: str, script_type: str) -> str:
         """
-        Build a few-shot prompt that demonstrates casual conversational replies.
+        Build a few-shot prompt that demonstrates natural casual replies.
 
         Args:
             model_input: Clean model-facing text.
@@ -289,19 +309,43 @@ class TanglishBridgePipeline:
                     "Message: Are you free now?\nReply: Yeah, I am free now.\n\n"
                     "Message: Did you eat?\nReply: Yes, I ate. You?\n\n"
                 )
-                instruction = (
-                    "Reply like a close friend in one short natural sentence. "
-                    "Do not explain the message."
-                )
+                instruction = "Reply like a close friend in one short natural sentence. Do not explain the message."
             else:
-                examples = (
-                    "Message: சாப்பிட்டியா?\nReply: சாப்பிட்டேன், நீ?\n\n"
-                    "Message: எங்கே இருக்கே?\nReply: வீட்டில இருக்கேன்.\n\n"
-                    "Message: exam எப்போது?\nReply: நாளைக்கு da.\n\n"
-                )
+                lowered_input = model_input.lower()
+                if "சாப்பிட்டியா" in model_input or "சாப்பிட்டாயா" in model_input:
+                    examples = (
+                        "Message: சாப்பிட்டியா?\nReply: சாப்பிட்டேன், நீ?\n\n"
+                        "Message: சாப்பிட்டியா?\nReply: இல்ல, இன்னும் சாப்பிடல. நீ சாப்பிட்டியா?\n\n"
+                        "Message: காபி குடிச்சியா?\nReply: ஆம், இப்போதான் குடிச்சேன்.\n\n"
+                    )
+                elif "வணக்கம்" in model_input or "எப்படி" in model_input:
+                    examples = (
+                        "Message: வணக்கம்\nReply: வணக்கம்! எப்படி இருக்கே?\n\n"
+                        "Message: எப்படி இருக்கே?\nReply: நல்லா இருக்கேன், நீ?\n\n"
+                        "Message: என்ன பண்ணுறே?\nReply: சும்மா தான் இருக்கேன்.\n\n"
+                    )
+                elif "எப்போது" in model_input or "exam" in lowered_input:
+                    examples = (
+                        "Message: exam எப்போது?\nReply: நாளைக்கு da.\n\n"
+                        "Message: meeting எப்போது?\nReply: மாலை ஆறு மணிக்கு.\n\n"
+                        "Message: office எப்போ?\nReply: இன்னும் கொஞ்ச நேரத்தில்.\n\n"
+                    )
+                elif "office" in lowered_input or "traffic" in lowered_input:
+                    examples = (
+                        "Message: நான் office ku வரேன்.\nReply: சரி da, பாத்து வா.\n\n"
+                        "Message: traffic ரொம்ப இருக்கு.\nReply: அப்படியா, safe-ah வா.\n\n"
+                        "Message: late ஆகிடுவேன்.\nReply: பரவாயில்லை, மெதுவா வா.\n\n"
+                    )
+                else:
+                    examples = (
+                        "Message: எங்கே இருக்கே?\nReply: வீட்டில இருக்கேன்.\n\n"
+                        "Message: என்ன பண்ணுறே?\nReply: சும்மா தான் இருக்கேன்.\n\n"
+                        "Message: வந்துட்டியா?\nReply: ஆம், இப்போதான் வந்தேன்.\n\n"
+                    )
                 instruction = (
                     "இந்த செய்திக்கு நண்பரைப்போல் ஒரு குறுகிய இயல்பான பதில் சொல்லவும். "
-                    "செய்தியை விளக்காதீர்கள். மொழிபெயர்க்காதீர்கள்."
+                    "செய்தி அனுப்பியவருக்கு பதில் சொல்வது போல முதல் நபர் பார்வையில் பதிலளிக்கவும். "
+                    "விளக்காதீர்கள். மொழிபெயர்க்காதீர்கள்."
                 )
             return (
                 f"### Instruction:\n{instruction}\n\n"
@@ -344,8 +388,7 @@ class TanglishBridgePipeline:
             if len(tokens) > 1:
                 tokens = [token for token in tokens if token.lower().strip(".,!?") not in filler_words]
 
-            cleaned = " ".join(tokens).strip()
-            cleaned = cleaned or text
+            cleaned = " ".join(tokens).strip() or text
             if script_type in {"tanglish", "romanized"} and not any("\u0B80" <= ch <= "\u0BFF" for ch in cleaned):
                 transliterated = self.transliterator.smart_transliterate(cleaned)
                 if transliterated:
@@ -374,6 +417,7 @@ class TanglishBridgePipeline:
                 effective_max_new_tokens = min(max_new_tokens, 64)
             if fast_mode:
                 effective_max_new_tokens = min(effective_max_new_tokens, 24 if self.device == "cpu" else 64)
+
             text_stats = self.detector.get_text_stats(input_text)
             script_type = str(text_stats["script_type"])
             cmi_score = float(text_stats["cmi_score"])
@@ -426,7 +470,14 @@ class TanglishBridgePipeline:
                     raw_response = self._generate_with_model(
                         prompt=self._build_few_shot_casual_prompt(model_input=model_input, script_type=script_type),
                         max_new_tokens=effective_max_new_tokens,
-                        fast_mode=True,
+                        fast_mode=False,
+                    )
+                if script_type in {"tanglish", "romanized", "mixed", "tamil"} and self._is_awkward_dialogue_response(raw_response):
+                    processing_log.append("awkward dialogue response detected; retrying with targeted casual prompt")
+                    raw_response = self._generate_with_model(
+                        prompt=self._build_few_shot_casual_prompt(model_input=model_input, script_type=script_type),
+                        max_new_tokens=effective_max_new_tokens,
+                        fast_mode=False,
                     )
             else:
                 raw_response = self._fallback_response(input_text=input_text, script_type=script_type)
@@ -481,23 +532,22 @@ class TanglishBridgePipeline:
             inputs = self.tokenizer(prompt, return_tensors="pt")
             if self.device == "cuda":
                 inputs = {key: value.to("cuda") for key, value in inputs.items()}
+
             generation_kwargs: Dict[str, object] = {
                 "max_new_tokens": max_new_tokens,
                 "pad_token_id": self.tokenizer.pad_token_id,
                 "eos_token_id": self.tokenizer.eos_token_id,
-                "repetition_penalty": 1.1,
+                "repetition_penalty": 1.12,
                 "no_repeat_ngram_size": 3,
             }
             if fast_mode:
                 generation_kwargs["do_sample"] = False
             else:
-                generation_kwargs["temperature"] = 0.7
-                generation_kwargs["top_p"] = 0.9
+                generation_kwargs["temperature"] = 0.82
+                generation_kwargs["top_p"] = 0.92
                 generation_kwargs["do_sample"] = True
-            outputs = self.model.generate(
-                **inputs,
-                **generation_kwargs,
-            )
+
+            outputs = self.model.generate(**inputs, **generation_kwargs)
             prompt_length = inputs["input_ids"].shape[-1]
             generated_tokens = outputs[0][prompt_length:]
             decoded = self.tokenizer.decode(generated_tokens, skip_special_tokens=True).strip()
@@ -530,7 +580,7 @@ class TanglishBridgePipeline:
                     "tanglish": "En peyar TanglishBridge. Naan help panna ready.",
                 }
                 return fallback.get(script_type, fallback["tanglish"])
-            if "saptiya" in lowered or "saapta" in lowered:
+            if "saptiya" in lowered or "saapta" in lowered or "சாப்பிட்டியா" in input_text:
                 return "Sapdala na ippove poi sapdu. Nee saptiya?"
             if "eppadi" in lowered or "how are you" in lowered:
                 return "Naan nalla irukken. Neenga eppadi irukkeenga?"
