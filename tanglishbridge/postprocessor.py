@@ -115,10 +115,11 @@ class ResponsePostProcessor:
 
             if input_style == "romanized":
                 romanized = self.transliterator.tamil_to_romanized(cleaned)
-                if self._looks_like_bad_romanization(romanized):
-                    cleaned = self._light_romanize_tamil_words(cleaned)
-                else:
+                if self._romanized_output_is_usable(romanized):
                     cleaned = romanized
+                else:
+                    # Prefer one clean script over a broken half-romanized sentence.
+                    cleaned = self._prefer_clean_tamil_output(cleaned)
             elif input_style == "tanglish" and self.detector.detect_script(cleaned) == "tamil":
                 for tamil_word, english_word in self.TANGISH_WORD_SWAPS.items():
                     cleaned = cleaned.replace(tamil_word, english_word)
@@ -158,6 +159,83 @@ class ResponsePostProcessor:
         except Exception as exc:
             logger.exception("Error while checking Romanization quality: %s", exc)
             return False
+
+    def _contains_tamil_script(self, text: str) -> bool:
+        """
+        Check whether a string still contains Tamil characters.
+
+        Args:
+            text: Candidate output text.
+
+        Returns:
+            ``True`` when Tamil Unicode codepoints are present.
+        """
+        return any("\u0B80" <= char <= "\u0BFF" for char in text)
+
+    def _contains_latin_letters(self, text: str) -> bool:
+        """
+        Check whether a string contains Latin letters.
+
+        Args:
+            text: Candidate output text.
+
+        Returns:
+            ``True`` when ASCII alphabetic characters are present.
+        """
+        return any("a" <= char.lower() <= "z" for char in text)
+
+    def _romanized_output_is_usable(self, text: str) -> bool:
+        """
+        Decide whether a Romanized response is clean enough to show.
+
+        Args:
+            text: Romanized candidate output.
+
+        Returns:
+            ``True`` when the Romanized output is readable and single-style.
+        """
+        try:
+            if not text.strip():
+                return False
+            if not self._contains_latin_letters(text):
+                return False
+            if self._looks_like_bad_romanization(text):
+                return False
+            if self._contains_tamil_script(text):
+                return False
+            return True
+        except Exception as exc:
+            logger.exception("Error while validating Romanized output: %s", exc)
+            return False
+
+    def _prefer_clean_tamil_output(self, text: str) -> str:
+        """
+        Pick a Tamil-only fallback instead of showing broken mixed Romanized output.
+
+        Args:
+            text: Original cleaned model response.
+
+        Returns:
+            The most Tamil-heavy sentence, or the original cleaned text.
+        """
+        try:
+            print("[ResponsePostProcessor] Falling back to clean Tamil output...")
+            sentences = [segment.strip() for segment in re.split(r"(?<=[.?!])\s+", text) if segment.strip()]
+            if not sentences:
+                return text
+
+            def tamil_score(sentence: str) -> tuple[int, int]:
+                tamil_chars = sum(1 for char in sentence if "\u0B80" <= char <= "\u0BFF")
+                latin_chars = sum(1 for char in sentence if ("a" <= char.lower() <= "z"))
+                return (tamil_chars, -latin_chars)
+
+            best_sentence = max(sentences, key=tamil_score)
+            if self._contains_tamil_script(best_sentence):
+                return best_sentence
+            return text
+        except Exception as exc:
+            logger.exception("Error while selecting clean Tamil output: %s", exc)
+            return text
 
     def _light_romanize_tamil_words(self, text: str) -> str:
         """
