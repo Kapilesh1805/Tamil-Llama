@@ -286,12 +286,7 @@ class TanglishBridgePipeline:
                 raw_response = self._fallback_response(input_text=input_text, script_type=script_type)
                 processing_log.append("heuristic fallback response used because the model is unavailable")
 
-            uses_romanized_output = script_type in {"tanglish", "romanized"} and not any(
-                "\u0B80" <= ch <= "\u0BFF" for ch in input_text
-            )
-            response_style = "romanized" if uses_romanized_output else (
-                script_type if script_type in {"tanglish", "romanized", "tamil", "english"} else "tanglish"
-            )
+            response_style = script_type if script_type in {"tanglish", "romanized", "tamil", "english"} else "tanglish"
             final_response = self.postprocessor.process(raw_response, response_style)
             processing_log.append(f"post-processing style: {response_style}")
 
