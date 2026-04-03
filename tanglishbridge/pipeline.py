@@ -215,6 +215,34 @@ class TanglishBridgePipeline:
             logger.exception("Error while checking explanatory response: %s", exc)
             return False
 
+    def _is_generic_assistant_response(self, response: str) -> bool:
+        """
+        Detect generic assistant-style replies that do not answer the message naturally.
+
+        Args:
+            response: Raw generated model text.
+
+        Returns:
+            ``True`` when the response looks like a generic assistant boilerplate.
+        """
+        try:
+            print("[TanglishBridgePipeline] Checking whether response is generic assistant text...")
+            lowered = response.lower()
+            markers = [
+                "நிச்சயமாக",
+                "உதவ",
+                "உங்களுக்கு உதவ",
+                "நான் உங்களுக்கு",
+                "i can help",
+                "i am here to help",
+                "sure, i can help",
+                "how can i help",
+            ]
+            return any(marker in lowered for marker in markers)
+        except Exception as exc:
+            logger.exception("Error while checking generic assistant response: %s", exc)
+            return False
+
     def _build_reply_only_prompt(self, model_input: str, script_type: str) -> str:
         """
         Build a stricter retry prompt that asks only for a direct reply.
@@ -242,6 +270,47 @@ class TanglishBridgePipeline:
         except Exception as exc:
             logger.exception("Error while building reply-only prompt: %s", exc)
             return f"### Instruction:\nReply directly.\n\n{model_input}\n\n### Response:\n"
+
+    def _build_few_shot_casual_prompt(self, model_input: str, script_type: str) -> str:
+        """
+        Build a few-shot prompt that demonstrates casual conversational replies.
+
+        Args:
+            model_input: Clean model-facing text.
+            script_type: Detected script category.
+
+        Returns:
+            A few-shot prompt string encouraging natural friend-style replies.
+        """
+        try:
+            print("[TanglishBridgePipeline] Building few-shot casual prompt...")
+            if script_type == "english":
+                examples = (
+                    "Message: Are you free now?\nReply: Yeah, I am free now.\n\n"
+                    "Message: Did you eat?\nReply: Yes, I ate. You?\n\n"
+                )
+                instruction = (
+                    "Reply like a close friend in one short natural sentence. "
+                    "Do not explain the message."
+                )
+            else:
+                examples = (
+                    "Message: சாப்பிட்டியா?\nReply: சாப்பிட்டேன், நீ?\n\n"
+                    "Message: எங்கே இருக்கே?\nReply: வீட்டில இருக்கேன்.\n\n"
+                    "Message: exam எப்போது?\nReply: நாளைக்கு da.\n\n"
+                )
+                instruction = (
+                    "இந்த செய்திக்கு நண்பரைப்போல் ஒரு குறுகிய இயல்பான பதில் சொல்லவும். "
+                    "செய்தியை விளக்காதீர்கள். மொழிபெயர்க்காதீர்கள்."
+                )
+            return (
+                f"### Instruction:\n{instruction}\n\n"
+                f"{examples}"
+                f"Message: {model_input}\nReply:"
+            )
+        except Exception as exc:
+            logger.exception("Error while building few-shot casual prompt: %s", exc)
+            return f"### Instruction:\nReply naturally.\n\nMessage: {model_input}\nReply:"
 
     def _prepare_model_text(self, text: str, script_type: str) -> str:
         """
@@ -349,6 +418,13 @@ class TanglishBridgePipeline:
                     processing_log.append("explanatory response detected; retrying with reply-only prompt")
                     raw_response = self._generate_with_model(
                         prompt=self._build_reply_only_prompt(model_input=model_input, script_type=script_type),
+                        max_new_tokens=effective_max_new_tokens,
+                        fast_mode=True,
+                    )
+                if script_type in {"tanglish", "romanized", "mixed", "tamil"} and self._is_generic_assistant_response(raw_response):
+                    processing_log.append("generic assistant response detected; retrying with few-shot casual prompt")
+                    raw_response = self._generate_with_model(
+                        prompt=self._build_few_shot_casual_prompt(model_input=model_input, script_type=script_type),
                         max_new_tokens=effective_max_new_tokens,
                         fast_mode=True,
                     )
