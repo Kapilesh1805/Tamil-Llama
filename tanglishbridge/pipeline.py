@@ -454,6 +454,68 @@ class TanglishBridgePipeline:
             logger.exception("Error while building clean chat-style few-shot prompt: %s", exc)
             return f"### Instruction:\nReply naturally.\n\nUser: {model_input}\nAssistant:"
 
+    def _needs_response_salvage(self, response: str, script_type: str) -> bool:
+        """
+        Decide whether the final model output is still too broken to show.
+
+        Args:
+            response: Raw generated model text after retries.
+            script_type: Detected input style.
+
+        Returns:
+            ``True`` when the response should be replaced by a safer casual reply.
+        """
+        try:
+            print("[TanglishBridgePipeline] Checking whether final response needs salvage...")
+            if script_type not in {"tanglish", "romanized", "mixed", "tamil"}:
+                return False
+            return any(
+                (
+                    self._is_explanatory_response(response),
+                    self._is_generic_assistant_response(response),
+                    self._is_awkward_dialogue_response(response),
+                    self._is_prompt_leak_response(response),
+                )
+            )
+        except Exception as exc:
+            logger.exception("Error while deciding response salvage: %s", exc)
+            return False
+
+    def _casual_response_fallback(self, input_text: str, model_input: str, script_type: str) -> str:
+        """
+        Produce a natural conversational reply when the model output is unusable.
+
+        Args:
+            input_text: Original user input.
+            model_input: Cleaned model-facing text.
+            script_type: Detected input style.
+
+        Returns:
+            A short casual fallback reply.
+        """
+        try:
+            print("[TanglishBridgePipeline] Building casual salvage response...")
+            source = f"{input_text} {model_input}".lower()
+
+            if any(token in source for token in ["saptiya", "saap", "சாப்பிட்டியா", "சாப்பிட்டாயா", "குடிச்சியா"]):
+                return "சாப்பிட்டேன், நீ?"
+            if any(token in source for token in ["vanakkam", "வணக்கம்"]):
+                return "வணக்கம்! எப்படி இருக்கே?"
+            if any(token in source for token in ["eppadi", "how are you", "எப்படி"]):
+                return "நல்லா இருக்கேன், நீ?"
+            if "your name" in source or "பெயர்" in source or "name" in source:
+                return "என் பெயர் TanglishBridge."
+            if any(token in source for token in ["exam", "eppo", "எப்போது"]):
+                return "எனக்கும் exact time தெரியல da, check பண்ணி சொல்லறேன்."
+            if any(token in source for token in ["office", "traffic", "late"]):
+                return "சரி da, பாத்து வா."
+            if any(token in source for token in ["எங்கே", "where", "irukka", "இருக்கே"]):
+                return "வீட்டில இருக்கேன்."
+            return "சரி da, கொஞ்சம் detail-ah சொல்லு."
+        except Exception as exc:
+            logger.exception("Error while building casual salvage response: %s", exc)
+            return self._fallback_response(input_text=input_text, script_type=script_type)
+
     def _prepare_model_text(self, text: str, script_type: str) -> str:
         """
         Convert mixed colloquial input into a cleaner model-facing text.
@@ -583,6 +645,13 @@ class TanglishBridgePipeline:
                         prompt=self._build_reply_only_prompt(model_input=model_input, script_type=script_type),
                         max_new_tokens=effective_max_new_tokens,
                         fast_mode=True,
+                    )
+                if self._needs_response_salvage(raw_response, script_type):
+                    processing_log.append("final response still unusable; applying casual salvage reply")
+                    raw_response = self._casual_response_fallback(
+                        input_text=input_text,
+                        model_input=model_input,
+                        script_type=script_type,
                     )
             else:
                 raw_response = self._fallback_response(input_text=input_text, script_type=script_type)
