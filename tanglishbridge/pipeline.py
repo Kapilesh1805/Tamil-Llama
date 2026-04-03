@@ -269,6 +269,34 @@ class TanglishBridgePipeline:
             logger.exception("Error while checking awkward dialogue response: %s", exc)
             return False
 
+    def _is_prompt_leak_response(self, response: str) -> bool:
+        """
+        Detect replies that echo prompt scaffolding instead of answering.
+
+        Args:
+            response: Raw generated model text.
+
+        Returns:
+            ``True`` when the reply includes template labels or instruction text.
+        """
+        try:
+            print("[TanglishBridgePipeline] Checking whether response leaks prompt text...")
+            lowered = response.lower()
+            markers = [
+                "### instruction",
+                "### response",
+                "message:",
+                "reply:",
+                "user:",
+                "assistant:",
+                "பின்வரும்",
+                "உருவாக்கவும்",
+            ]
+            return any(marker in lowered for marker in markers)
+        except Exception as exc:
+            logger.exception("Error while checking prompt leak response: %s", exc)
+            return False
+
     def _build_reply_only_prompt(self, model_input: str, script_type: str) -> str:
         """
         Build a stricter retry prompt that asks only for a direct reply.
@@ -361,6 +389,70 @@ class TanglishBridgePipeline:
         except Exception as exc:
             logger.exception("Error while building few-shot casual prompt: %s", exc)
             return f"### Instruction:\nReply naturally.\n\nMessage: {model_input}\nReply:"
+
+    def _build_chat_few_shot_casual_prompt(self, model_input: str, script_type: str) -> str:
+        """
+        Build a cleaner chat-style few-shot prompt to avoid template leakage.
+
+        Args:
+            model_input: Clean model-facing text.
+            script_type: Detected script category.
+
+        Returns:
+            A few-shot prompt string using ``User``/``Assistant`` examples.
+        """
+        try:
+            print("[TanglishBridgePipeline] Building clean chat-style few-shot prompt...")
+            if script_type == "english":
+                examples = (
+                    "User: Are you free now?\nAssistant: Yeah, I am free now.\n\n"
+                    "User: Did you eat?\nAssistant: Yes, I ate. You?\n\n"
+                )
+                instruction = (
+                    "Reply like a close friend in one short natural sentence. "
+                    "Return only the reply."
+                )
+            else:
+                lowered_input = model_input.lower()
+                if any(token in lowered_input for token in ["சாப்பிட்டியா", "சாப்பிட்டாயா", "குடிச்சியா", "saptiya", "saap"]):
+                    examples = (
+                        "User: சாப்பிட்டியா?\nAssistant: சாப்பிட்டேன், நீ?\n\n"
+                        "User: சாப்பிட்டியா?\nAssistant: இல்ல, இன்னும் சாப்பிடல. நீ சாப்பிட்டியா?\n\n"
+                        "User: காபி குடிச்சியா?\nAssistant: ஆம், இப்போதான் குடிச்சேன்.\n\n"
+                    )
+                elif any(token in lowered_input for token in ["வணக்கம்", "எப்படி", "vanakkam", "eppadi"]):
+                    examples = (
+                        "User: வணக்கம்\nAssistant: வணக்கம்! எப்படி இருக்கே?\n\n"
+                        "User: எப்படி இருக்கே?\nAssistant: நல்லா இருக்கேன், நீ?\n\n"
+                        "User: என்ன பண்ணுறே?\nAssistant: சும்மா தான் இருக்கேன்.\n\n"
+                    )
+                elif "exam" in lowered_input or "எப்போது" in lowered_input or "eppo" in lowered_input:
+                    examples = (
+                        "User: exam எப்போது?\nAssistant: நாளைக்கு da.\n\n"
+                        "User: meeting எப்போது?\nAssistant: மாலை ஆறு மணிக்கு.\n\n"
+                        "User: office எப்போ?\nAssistant: இன்னும் கொஞ்ச நேரத்தில்.\n\n"
+                    )
+                elif "office" in lowered_input or "traffic" in lowered_input or "late" in lowered_input:
+                    examples = (
+                        "User: நான் office ku வரேன்.\nAssistant: சரி da, பாத்து வா.\n\n"
+                        "User: traffic ரொம்ப இருக்கு.\nAssistant: அப்படியா, safe-ah வா.\n\n"
+                        "User: late ஆகிடுவேன்.\nAssistant: பரவாயில்லை, மெதுவா வா.\n\n"
+                    )
+                else:
+                    examples = (
+                        "User: எங்கே இருக்கே?\nAssistant: வீட்டில இருக்கேன்.\n\n"
+                        "User: என்ன பண்ணுறே?\nAssistant: சும்மா தான் இருக்கேன்.\n\n"
+                        "User: வந்துட்டியா?\nAssistant: ஆம், இப்போதான் வந்தேன்.\n\n"
+                    )
+                instruction = (
+                    "இந்த செய்திக்கு நண்பரைப்போல் ஒரு குறுகிய இயல்பான பதில் சொல்லவும். "
+                    "செய்தி அனுப்பியவருக்கு பதில் சொல்வது போல முதல் நபர் பார்வையில் பதிலளிக்கவும். "
+                    "விளக்காதீர்கள். மொழிபெயர்க்காதீர்கள். பதில் மட்டும் கொடுக்கவும்."
+                )
+            return f"### Instruction:\n{instruction}\n\n{examples}User: {model_input}\nAssistant:"
+        except Exception as exc:
+            logger.exception("Error while building clean chat-style few-shot prompt: %s", exc)
+            return f"### Instruction:\nReply naturally.\n\nUser: {model_input}\nAssistant:"
 
     def _prepare_model_text(self, text: str, script_type: str) -> str:
         """
@@ -474,16 +566,23 @@ class TanglishBridgePipeline:
                 if script_type in {"tanglish", "romanized", "mixed", "tamil"} and self._is_generic_assistant_response(raw_response):
                     processing_log.append("generic assistant response detected; retrying with few-shot casual prompt")
                     raw_response = self._generate_with_model(
-                        prompt=self._build_few_shot_casual_prompt(model_input=model_input, script_type=script_type),
+                        prompt=self._build_chat_few_shot_casual_prompt(model_input=model_input, script_type=script_type),
                         max_new_tokens=effective_max_new_tokens,
                         fast_mode=False,
                     )
                 if script_type in {"tanglish", "romanized", "mixed", "tamil"} and self._is_awkward_dialogue_response(raw_response):
                     processing_log.append("awkward dialogue response detected; retrying with targeted casual prompt")
                     raw_response = self._generate_with_model(
-                        prompt=self._build_few_shot_casual_prompt(model_input=model_input, script_type=script_type),
+                        prompt=self._build_chat_few_shot_casual_prompt(model_input=model_input, script_type=script_type),
                         max_new_tokens=effective_max_new_tokens,
                         fast_mode=False,
+                    )
+                if script_type in {"tanglish", "romanized", "mixed", "tamil"} and self._is_prompt_leak_response(raw_response):
+                    processing_log.append("prompt leak detected; retrying with strict reply-only prompt")
+                    raw_response = self._generate_with_model(
+                        prompt=self._build_reply_only_prompt(model_input=model_input, script_type=script_type),
+                        max_new_tokens=effective_max_new_tokens,
+                        fast_mode=True,
                     )
             else:
                 raw_response = self._fallback_response(input_text=input_text, script_type=script_type)
